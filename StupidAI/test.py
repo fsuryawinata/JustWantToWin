@@ -42,7 +42,7 @@ file directories
 ================
 '''
 p1Script = "Battleship"
-p2Script = "EnemyAi"
+p2Script = "Battleship"
 
 #dynamically import the module
 p1 = importlib.import_module(p1Script)

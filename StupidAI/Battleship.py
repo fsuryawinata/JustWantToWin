@@ -4,14 +4,14 @@ import random
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]  # Right, Down, Left, Up
 
 def initialize_storage():
-    return [[], [], 0]  # [direction, confirmed_hit, hits_in_direction]
+    return [[], None, 0]  # [direction, confirmed_hit, hits_in_direction]
 
 def validate_coord(coord):
     # Ensure the coordinate is within the range of 1 to 10
     return 1 <= coord <= 10
 
 def ShipLogic(round, yourMap, yourHp, enemyHp, p1ShotSeq, p1PrevHit, storage):
-    if storage == []:
+    if not storage:
         storage = initialize_storage()
 
     # If there was a previous hit, continue in the current direction
@@ -37,10 +37,23 @@ def ShipLogic(round, yourMap, yourHp, enemyHp, p1ShotSeq, p1PrevHit, storage):
     else:
         next_coords = randCoord(p1ShotSeq, storage)
     
-    # Ensure the coordinates are within the range of 1 to 10
-    next_coords = [max(1, min(coord, 10)) for coord in next_coords]
+    if next_coords:
+        # Ensure the coordinates are within the range of 1 to 10
+        next_coords = [max(1, min(coord, 10)) for coord in next_coords]
 
-    return next_coords, storage
+    # Check for available neighbors and remove next_coords from the options
+    neighboring_squares = randCoord(p1ShotSeq, storage)  # Initialize neighboring_squares
+    available_neighbors = []
+
+    if neighboring_squares:
+        for coord in neighboring_squares:
+            if coord not in p1ShotSeq and coord != next_coords:
+                available_neighbors.append(coord)
+
+    if available_neighbors:
+        return next_coords, storage
+    else:
+        return [random.randint(1, 10), random.randint(1, 10)], storage
 
 def getBoard():
     board = []
@@ -52,13 +65,12 @@ def getBoard():
 def getBlackSquares():
     black_squares = [[x, y] for x in range(1, 11) for y in range(1, 11) if (x + y) % 2 == 0]
     return black_squares
-    
 
 def randCoord(p1ShotSeq, storage):
-    if len(storage[1]) != 0:
+    if storage[1]:
         foundShip = storage[1]
 
-        # Calculate coordinates of neighboring black squares 2 to 4 blocks away
+        # Calculate coordinates of neighboring black squares 1 to 4 blocks away
         neighboring_squares = []
 
         black_squares = getBlackSquares()  # Get the list of black squares
@@ -67,16 +79,17 @@ def randCoord(p1ShotSeq, storage):
             for y in range(foundShip[1] - 4, foundShip[1] + 5):
                 # Check if the coordinates are within the bounds of the 10x10 grid
                 if validate_coord(x) and validate_coord(y):
-                    # Check if the distance from the found ship coordinates is between 2 and 4 blocks away
-                    distance = abs(x - foundShip[0]) + abs(y - foundShip[1])
-                    if 2 <= distance <= 4:
-                        # Check if the coordinate is a black square
-                        if [x, y] in black_squares:
-                            neighboring_squares.append([x, y])
+                    # Check if the coordinate is a black square
+                    if [x, y] in black_squares and [x, y] not in p1ShotSeq:
+                        neighboring_squares.append([x, y])
 
         # Filter out coordinates that have already been shot at
-        available_neighbors = [coord for coord in neighboring_squares if coord not in p1ShotSeq]
-        if len(available_neighbors) != 0:
+        available_neighbors = []
+        for coord in neighboring_squares:
+            if coord not in p1ShotSeq:
+                available_neighbors.append(coord)
+
+        if available_neighbors:
             return random.choice(available_neighbors)
         else:
             return [random.randint(1, 10), random.randint(1, 10)]
@@ -85,7 +98,7 @@ def randCoord(p1ShotSeq, storage):
         return [random.randint(1, 10), random.randint(1, 10)]
 
 
-#checking for consecutive neighbors 
+# Checking for consecutive neighbors 
 def add_neighbours(coord, storage, p1ShotSeq):
     row = coord[0]
     col = coord[1]
