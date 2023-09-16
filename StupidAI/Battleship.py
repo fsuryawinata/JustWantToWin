@@ -1,6 +1,6 @@
 import random
 def ShipLogic(round, yourMap, yourHp, enemyHp, p1ShotSeq, p1PrevHit, storage):
-    if round == 1:
+    if storage == []:
         storage = [[],[]]
     board = getBoard()
     coords = randCoord(p1ShotSeq, storage)
